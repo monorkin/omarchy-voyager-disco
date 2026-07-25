@@ -1,0 +1,44 @@
+import QtQuick
+
+// The Voyager Disco mark: a paper plane arcing over a disco ball. Both parts
+// are independently tintable — the plane and its trail are cut out of the
+// ball, so the bar background shows through the gap. Path data mirrors
+// icon.svg (the design source of truth); the SVG is rebuilt as a data URL
+// whenever a color changes so recolors stay crisp at any size.
+Item {
+  id: root
+
+  property real iconSize: 16
+  property color ballColor: "#888888"
+  property color planeColor: "#ffffff"
+
+  width: iconSize
+  height: iconSize
+  implicitWidth: iconSize
+  implicitHeight: iconSize
+
+  readonly property string ballPath: "M 131.91133,12.934094 C 65.779378,12.934191 12.168862,66.544708 12.168766,132.67666 c 3e-5,23.88106 7.140766,47.21663 20.504692,67.00831 -3.350126,-13.56897 0.281943,-29.62056 14.281815,-47.64567 16.211994,-20.87327 46.20338,-44.83105 95.949187,-72.582134 l -2.89647,-11.110433 c -0.17529,-0.09307 -0.337,-0.20974 -0.48059,-0.346749 L 108.54273,38.441581 c -1.25293,-1.1958 -0.66969,-3.305296 1.01957,-3.68763 l 63.762,-14.43116 c -13.26015,-4.887405 -27.28079,-7.388898 -41.41297,-7.388697 z m 102.6511,58.090511 -21.35942,53.846325 c -0.54686,1.37722 -2.28233,1.81384 -3.41582,0.85938 L 163.09547,86.382324 152.12508,98.312862 c -0.19952,0.331535 -0.47052,0.614362 -0.79323,0.827857 -41.67845,27.541171 -60.462721,51.659131 -66.407835,71.720691 -5.945114,20.06156 0.569555,36.42775 10.677385,49.57216 10.10783,13.14442 23.80863,22.72546 31.75413,28.31249 1.98637,1.39676 3.6079,2.53451 4.81056,3.50573 0.0697,0.0563 0.13823,0.112 0.20516,0.16691 65.95206,-0.25342 119.28274,-53.78949 119.28264,-119.74204 -9e-5,-21.72046 -5.90813,-43.031858 -17.09146,-61.652055 z"
+  readonly property string planePath: "M 255.76537,6.1640892 114.60758,38.111493 141.57596,63.840155 205.95911,32.865301 c 2.23353,-1.070246 4.22913,1.833792 2.42931,3.535185 l -46.15997,43.474866 48.1893,40.613018 z m -60.74513,36.7807008 -50.97259,24.523567 6.27455,24.066748 6.84764,-13.046749 c 0.104,-0.198462 0.2406,-0.378039 0.40411,-0.531233 z"
+
+  // SVG fills don't understand QML's #aarrggbb form, so always emit #rrggbb.
+  function svgHex(c) {
+    function pad(v) {
+      var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)
+      return s.length === 1 ? "0" + s : s
+    }
+    return "#" + pad(c.r) + pad(c.g) + pad(c.b)
+  }
+
+  Image {
+    anchors.fill: parent
+    fillMode: Image.PreserveAspectFit
+    smooth: true
+    sourceSize.width: Math.max(1, Math.ceil(root.width * 2))
+    sourceSize.height: Math.max(1, Math.ceil(root.height * 2))
+    source: "data:image/svg+xml;utf8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264.58335 264.58335">'
+      + '<path fill="' + root.svgHex(root.ballColor) + '" d="' + root.ballPath + '"/>'
+      + '<path fill="' + root.svgHex(root.planeColor) + '" d="' + root.planePath + '"/>'
+      + '</svg>')
+  }
+}

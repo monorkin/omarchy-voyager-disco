@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "monorkin.voyager-disco",
+  "name": "Voyager Disco",
+  "version": "0.1.0",
+  "author": "Stanko K.R.",
+  "license": "MIT",
+  "description": "Color picker for ZSA keyboard RGB LEDs, powered by the voyager-disco CLI.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Voyager Disco",
+    "description": "Pick a color and brightness for your ZSA keyboard's LEDs, match the Omarchy theme accent, or reset to Oryx lighting.",
+    "category": "Hardware",
+    "allowMultiple": false,
+    "defaults": {
+      "device": ""
+    },
+    "schema": [
+      {
+        "key": "device",
+        "type": "string",
+        "label": "Device serials (comma-separated, empty = all keyboards)"
+      }
+    ]
+  }
+}

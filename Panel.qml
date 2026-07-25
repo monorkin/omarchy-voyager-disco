@@ -38,6 +38,8 @@ Panel {
     : appliedMode === "theme" ? Color.accent
     : Qt.darker(barForeground, 1.55)
 
+  readonly property bool hasKeyboard: disco.devices.length > 0
+
   readonly property string statusText: !disco.installed ? "voyager-disco CLI not installed"
     : disco.devices.length === 0 ? "No ZSA keyboards found"
     : disco.devices.length === 1 ? disco.devices[0].product
@@ -267,8 +269,36 @@ Panel {
           wrapMode: Text.WordWrap
         }
 
+        // Placeholder shown in place of the picker when nothing is plugged in.
+        Column {
+          visible: disco.installed && !root.hasKeyboard
+          width: parent.width
+          spacing: Style.space(6)
+          topPadding: Style.space(20)
+          bottomPadding: Style.space(20)
+
+          Text {
+            width: parent.width
+            text: "󰌐"
+            color: root.dim
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.display
+            horizontalAlignment: Text.AlignHCenter
+          }
+
+          Text {
+            width: parent.width
+            text: "No keyboard attached"
+            color: root.dim
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+            horizontalAlignment: Text.AlignHCenter
+          }
+        }
+
         // Live preview + hex readout.
         Rectangle {
+          visible: root.hasKeyboard
           width: parent.width
           height: Style.space(44)
           radius: Style.cornerRadius
@@ -309,6 +339,7 @@ Panel {
         }
 
         Flow {
+          visible: root.hasKeyboard
           width: parent.width
           spacing: Style.space(6)
 
@@ -332,7 +363,10 @@ Panel {
           }
         }
 
-        PanelSeparator { foreground: root.foreground }
+        PanelSeparator {
+          visible: root.hasKeyboard
+          foreground: root.foreground
+        }
 
         SliderRow {
           label: "Brightness"
@@ -343,6 +377,7 @@ Panel {
         }
 
         Row {
+          visible: root.hasKeyboard
           width: parent.width
           spacing: Style.space(8)
 
@@ -425,6 +460,8 @@ Panel {
     signal changed(real value)
     signal done(real value)
 
+    // Every slider drives the keyboard; none make sense without one.
+    visible: root.hasKeyboard
     width: parent.width
     spacing: Style.space(2)
 

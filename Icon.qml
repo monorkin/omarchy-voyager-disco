@@ -1,10 +1,7 @@
 import QtQuick
 
-// The Voyager Disco mark: a paper plane arcing over a disco ball. Both parts
-// are independently tintable — the plane and its trail are cut out of the
-// ball, so the bar background shows through the gap. Path data mirrors
-// icon.svg (the design source of truth); the SVG is rebuilt as a data URL
-// whenever a color changes so recolors stay crisp at any size.
+// Path data mirrors icon.svg. The plane and its trail are cut out of the
+// ball, so the bar background shows through the gap between them.
 Item {
   id: root
 
@@ -24,7 +21,11 @@ Item {
   function svgHex(c) {
     function pad(v) {
       var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)
-      return s.length === 1 ? "0" + s : s
+      if (s.length === 1) {
+        return "0" + s
+      } else {
+        return s
+      }
     }
     return "#" + pad(c.r) + pad(c.g) + pad(c.b)
   }

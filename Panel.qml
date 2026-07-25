@@ -11,18 +11,15 @@ Panel {
   ipcTarget: "monorkin.voyager-disco"
   manageIpc: false
 
-  // HSV working color. Hue 0-360, saturation/value 0-100.
   property real hue: 200
   property real satPercent: 100
   property real valPercent: 100
 
-  // What the keyboard is currently showing: "color", "theme", or "" after a
-  // reset (Oryx lighting). Restored from shell.json so the bar tint survives
-  // shell restarts even though the keyboard itself forgets on power cycle.
   property string appliedMode: ""
   property int keyboardBrightness: 100
   property bool _restored: false
   property bool _dirty: false
+  property int subtitleIndex: 0
 
   readonly property color currentColor: Qt.hsva(hue / 360, satPercent / 100, valPercent / 100, 1)
   readonly property string currentHex: hexOf(currentColor)
@@ -32,39 +29,65 @@ Panel {
   readonly property color foreground: bar ? bar.foreground : Color.foreground
   readonly property color dim: Qt.darker(foreground, 1.55)
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
-  // The disco ball wears the applied color; unset/reset falls back to a
-  // dimmed foreground so the icon reads as inactive.
-  readonly property color ballColor: appliedMode === "color" ? currentColor
-    : appliedMode === "theme" ? Color.accent
-    : Qt.darker(barForeground, 1.55)
+
+  readonly property color ballColor: {
+    if (appliedMode === "color") {
+      return currentColor
+    } else if (appliedMode === "theme") {
+      return Color.accent
+    } else {
+      return Qt.darker(barForeground, 1.55)
+    }
+  }
 
   readonly property bool hasKeyboard: disco.devices.length > 0
 
-  readonly property string statusText: !disco.installed ? "voyager-disco CLI not installed"
-    : disco.devices.length === 0 ? "No ZSA keyboards found"
-    : disco.devices.length === 1 ? disco.devices[0].product
-    : disco.devices.length + " keyboards connected"
+  readonly property var attachedPhrases: [
+    "Picking colors",
+    "Stimulating optic nerve",
+    "Lighting LEDs",
+    "Spinning disco ball",
+    "Theming keyboard",
+    "Collecting moon dust",
+    "Mixing pigments",
+    "Choosing brushes",
+    "Diluting colors",
+    "Making happy little clouds"
+  ]
+
+  readonly property var detachedPhrases: [
+    "Looking...",
+    "Searching...",
+    "Fetching...",
+    "Digging...",
+    "Inspecting...",
+    "Scanning...",
+    "Listening..."
+  ]
+
+  readonly property var activePhrases: {
+    if (hasKeyboard) {
+      return attachedPhrases
+    } else {
+      return detachedPhrases
+    }
+  }
+
+  readonly property string statusText: {
+    if (disco.installed) {
+      return activePhrases[subtitleIndex % activePhrases.length]
+    } else {
+      return "voyager-disco CLI not installed"
+    }
+  }
 
   readonly property var swatches: [
     String(Color.accent),
-    "#ffffff", "#ff3b30", "#ff9500", "#ffe135", "#34d158",
-    "#00e5d0", "#0a84ff", "#5e5ce6", "#bf5af2", "#ff2d92"
+    "#ffffff", "#8e8e93", "#a2845e", "#ff3b30", "#d70015",
+    "#ff9500", "#ffb340", "#ffe135", "#34d158", "#00c7be",
+    "#00e5d0", "#30b0c7", "#32ade6", "#0a84ff", "#5e5ce6",
+    "#bf5af2", "#e040fb", "#ff2d92", "#ff6482"
   ]
-
-  function hexOf(c) {
-    function pad(v) {
-      var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)
-      return s.length === 1 ? "0" + s : s
-    }
-    return pad(c.r) + pad(c.g) + pad(c.b)
-  }
-
-  function setFromColor(c) {
-    var col = Qt.color(c)
-    hue = col.hsvHue < 0 ? 0 : col.hsvHue * 360
-    satPercent = col.hsvSaturation * 100
-    valPercent = col.hsvValue * 100
-  }
 
   function applyColor() {
     disco.setColor(currentHex)
@@ -102,21 +125,17 @@ Panel {
     persist()
   }
 
-  // State lives in a private file, NOT in shell.json: writing the layout
-  // entry back (updateEntryInline) rebuilds the bar's layout model and
-  // recreates every widget, closing any open popup. A state file has no
-  // such side effects, so writes are just rate-limited: immediate when
-  // idle, then at most one per interval, with a trailing write so the
-  // final state always lands.
   function persist() {
     _dirty = true
-    if (persistTimer.running) return
-    flushPersist()
-    persistTimer.start()
+    if (!persistTimer.running) {
+      flushPersist()
+      persistTimer.start()
+    }
   }
 
   function flushPersist() {
     if (!_dirty) return
+
     _dirty = false
     var payload = JSON.stringify({
       lastColor: currentHex,
@@ -130,14 +149,42 @@ Panel {
 
   function restoreFromState(raw) {
     if (_restored) return
+
     _restored = true
     var state = {}
-    try { state = JSON.parse(String(raw || "{}")) } catch (error) { return }
+    try {
+      state = JSON.parse(String(raw || "{}"))
+    } catch (error) {
+      return
+    }
     var saved = String(state.lastColor || "")
     if (saved.match(/^[0-9a-fA-F]{6}$/)) setFromColor("#" + saved)
     appliedMode = String(state.lastMode || "")
     var b = parseInt(String(state.lastBrightness), 10)
     if (isFinite(b)) keyboardBrightness = Math.max(0, Math.min(100, b))
+  }
+
+  function setFromColor(c) {
+    var col = Qt.color(c)
+    if (col.hsvHue < 0) {
+      hue = 0
+    } else {
+      hue = col.hsvHue * 360
+    }
+    satPercent = col.hsvSaturation * 100
+    valPercent = col.hsvValue * 100
+  }
+
+  function hexOf(c) {
+    function pad(v) {
+      var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)
+      if (s.length === 1) {
+        return "0" + s
+      } else {
+        return s
+      }
+    }
+    return pad(c.r) + pad(c.g) + pad(c.b)
   }
 
   implicitWidth: button.implicitWidth
@@ -171,9 +218,10 @@ Panel {
     interval: 100
     repeat: false
     onTriggered: {
-      if (!root._dirty) return
-      root.flushPersist()
-      persistTimer.start()
+      if (root._dirty) {
+        root.flushPersist()
+        persistTimer.start()
+      }
     }
   }
 
@@ -182,6 +230,29 @@ Panel {
     watchChanges: false
     printErrors: false
     onLoaded: root.restoreFromState(text())
+  }
+
+  Timer {
+    id: phraseTimer
+    interval: 2800
+    repeat: true
+    running: root.opened && disco.installed
+    onTriggered: phraseSwap.restart()
+  }
+
+  SequentialAnimation {
+    id: phraseSwap
+    PropertyAnimation {
+      target: hero; property: "metaOpacity"
+      to: 0.0; duration: 180; easing.type: Easing.OutQuad
+    }
+    ScriptAction {
+      script: root.subtitleIndex = (root.subtitleIndex + 1) % root.activePhrases.length
+    }
+    PropertyAnimation {
+      target: hero; property: "metaOpacity"
+      to: 1.0; duration: 260; easing.type: Easing.InQuad
+    }
   }
 
   IpcHandler {
@@ -214,7 +285,11 @@ Panel {
       else root.toggle()
     }
     onWheelMoved: function(delta) {
-      root.applyBrightness(root.keyboardBrightness + (delta > 0 ? 5 : -5))
+      if (delta > 0) {
+        root.applyBrightness(root.keyboardBrightness + 5)
+      } else {
+        root.applyBrightness(root.keyboardBrightness - 5)
+      }
     }
   }
 
@@ -245,6 +320,7 @@ Panel {
         spacing: Style.space(12)
 
         PanelHero {
+          id: hero
           width: parent.width
           title: "Voyager Disco"
           meta: root.statusText
@@ -253,7 +329,13 @@ Panel {
           iconComponent: Component {
             Icon {
               iconSize: Style.font.display
-              ballColor: root.appliedMode !== "" ? root.currentColor : root.dim
+              ballColor: {
+                if (root.appliedMode !== "") {
+                  return root.currentColor
+                } else {
+                  return root.dim
+                }
+              }
               planeColor: root.foreground
             }
           }
@@ -269,7 +351,6 @@ Panel {
           wrapMode: Text.WordWrap
         }
 
-        // Placeholder shown in place of the picker when nothing is plugged in.
         Column {
           visible: disco.installed && !root.hasKeyboard
           width: parent.width
@@ -296,7 +377,6 @@ Panel {
           }
         }
 
-        // Live preview + hex readout.
         Rectangle {
           visible: root.hasKeyboard
           width: parent.width
@@ -307,7 +387,13 @@ Panel {
           Text {
             anchors.centerIn: parent
             text: "#" + root.currentHex
-            color: root.valPercent > 60 && root.satPercent < 70 ? "#000000" : "#ffffff"
+            color: {
+              if (root.valPercent > 60 && root.satPercent < 70) {
+                return "#000000"
+              } else {
+                return "#ffffff"
+              }
+            }
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
           }
@@ -376,12 +462,13 @@ Panel {
           onDone: function(v) { root.applyBrightness(v) }
         }
 
-        Row {
+        RowLayout {
           visible: root.hasKeyboard
           width: parent.width
           spacing: Style.space(8)
 
           Button {
+            Layout.fillWidth: true
             text: "Match theme"
             iconText: "󰏘"
             bordered: true
@@ -391,6 +478,7 @@ Panel {
           }
 
           Button {
+            Layout.fillWidth: true
             text: "Reset to Oryx"
             iconText: "󰜉"
             bordered: true
@@ -460,7 +548,6 @@ Panel {
     signal changed(real value)
     signal done(real value)
 
-    // Every slider drives the keyboard; none make sense without one.
     visible: root.hasKeyboard
     width: parent.width
     spacing: Style.space(2)
@@ -478,7 +565,13 @@ Panel {
       minimum: 0
       maximum: parent.maximum
       value: parent.value
-      step: parent.maximum > 100 ? 6 : 2
+      step: {
+        if (parent.maximum > 100) {
+          return 6
+        } else {
+          return 2
+        }
+      }
       integer: true
       fillColor: parent.fill
       knobColor: parent.fill

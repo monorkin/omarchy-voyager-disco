@@ -2,9 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Thin wrapper around the voyager-disco CLI. Device discovery goes through
-// `voyager-disco list`; LED changes are fire-and-forget since the CLI exits
-// immediately and the color lives in keyboard RAM.
 Item {
   id: root
 
@@ -12,24 +9,9 @@ Item {
 
   property bool installed: true
   property bool refreshing: false
-  // [{ serial, product, path }]
   property var devices: []
 
   property string _listOutput: ""
-
-  function setting(name, fallback) {
-    var value = settings ? settings[name] : undefined
-    return value === undefined || value === null ? fallback : value
-  }
-
-  function deviceArgs() {
-    var serials = String(setting("device", "")).trim()
-    return serials === "" ? [] : ["-d", serials]
-  }
-
-  function run(args) {
-    Quickshell.execDetached(["voyager-disco"].concat(args).concat(deviceArgs()))
-  }
 
   function setColor(hex) {
     run(["set-color", String(hex).replace("#", "")])
@@ -44,13 +26,12 @@ Item {
   }
 
   function matchTheme() {
-    // match-theme reads the accent from the current Omarchy theme itself and
-    // takes no device filter of its own beyond what the CLI applies.
     Quickshell.execDetached(["voyager-disco", "omarchy", "match-theme"])
   }
 
   function refresh() {
     if (listProcess.running) return
+
     _listOutput = ""
     refreshing = true
     listProcess.running = true
@@ -63,12 +44,14 @@ Item {
       devices = []
       return
     }
+
     installed = true
     var found = []
     var lines = text.split("\n")
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim()
       if (line === "") continue
+
       // `voyager-disco list` prints: <serial>  <product>  <hid path>
       var parts = line.split(/\s{2,}/)
       found.push({
@@ -78,6 +61,30 @@ Item {
       })
     }
     devices = found
+  }
+
+  function run(args) {
+    Quickshell.execDetached(["voyager-disco"].concat(args).concat(deviceArgs()))
+  }
+
+  function deviceArgs() {
+    var serials = String(setting("device", "")).trim()
+    if (serials === "") {
+      return []
+    } else {
+      return ["-d", serials]
+    }
+  }
+
+  function setting(name, fallback) {
+    var value = undefined
+    if (settings) value = settings[name]
+
+    if (value === undefined || value === null) {
+      return fallback
+    } else {
+      return value
+    }
   }
 
   Process {

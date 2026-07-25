@@ -4,6 +4,7 @@ Change the color of your ZSA keyboard from Omarchy's bar!
 
 <img width="810" height="1138" alt="Pasted image" src="https://github.com/user-attachments/assets/e4d0a1ff-b6ef-46e2-90bb-3a7b9d539a0a" />
 
+https://github.com/user-attachments/assets/63f318f0-53b6-4b68-9dd1-204557c7f51f
 
 ## Requirements
 

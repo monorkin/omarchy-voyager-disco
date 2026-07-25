@@ -8,6 +8,10 @@ Change the color of your ZSA keyboard from Omarchy's bar!
 
 https://github.com/user-attachments/assets/8a480bcd-bb1f-426d-b203-ebd345176fcb
 
+https://github.com/user-attachments/assets/3086eb4b-86ee-45a4-be59-7a1ae2f85087
+
+
+
 ## Requirements
 
 - Omarchy 4 with `omarchy-shell` (bar widgets / Quickshell)

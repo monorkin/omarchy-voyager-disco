@@ -21,7 +21,12 @@ https://github.com/user-attachments/assets/3086eb4b-86ee-45a4-be59-7a1ae2f85087
 
 ```sh
 omarchy plugin add https://github.com/monorkin/omarchy-voyager-disco.git --enable
-omarchy bar plugin add monorkin.voyager-disco
+```
+
+Without `--enable` the plugin lands disabled so you can review the code first; turn it on with `omarchy plugin enable monorkin.voyager-disco` or from **Setup › Plugins**. Enabling places the widget in the bar's right section — move it with:
+
+```sh
+omarchy bar move monorkin.voyager-disco --section right --index 0
 ```
 
 ## Settings
@@ -30,10 +35,8 @@ omarchy bar plugin add monorkin.voyager-disco
 |----------|--------|---------|--------------------------------------------------------|
 | `device` | string | `""`    | Comma-separated keyboard serials to target (empty = all) |
 
-Set it from the bar's widget settings UI, or:
-
 ```sh
-omarchy bar plugin set monorkin.voyager-disco device ABC123
+omarchy bar set monorkin.voyager-disco device ABC123
 ```
 
 ## IPC

@@ -29,6 +29,14 @@ Without `--enable` the plugin lands disabled so you can review the code first; t
 omarchy bar move monorkin.voyager-disco --section right --index 0
 ```
 
+## Removal
+
+```sh
+omarchy plugin remove monorkin.voyager-disco
+```
+
+The widget keeps its state in `~/.local/state/voyager-disco/widget.json`; delete that file if you want a fully clean removal. The `voyager-disco` CLI is a separate package and stays installed until you remove it yourself (`yay -R voyager-disco` on Arch).
+
 ## Settings
 
 | Key      | Type   | Default | Description                                            |

@@ -2,7 +2,7 @@
 
 Change the color of your ZSA keyboard from Omarchy's bar!
 
-<img width="800" height="1146" alt="Voyager Disco in the Omarchy bar" src="https://github.com/user-attachments/assets/32eae43f-adb3-4528-893b-cd2859fa0ed1" />
+![Preview](./preview.png)
 
 ## Demo
 

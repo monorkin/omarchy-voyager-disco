@@ -479,13 +479,24 @@ Panel {
 
           Button {
             Layout.fillWidth: true
-            text: "Reset to Oryx"
+            text: "Reset"
             iconText: "󰜉"
             bordered: true
             foreground: root.foreground
             fontFamily: root.fontFamily
             onClicked: root.resetLighting()
           }
+        }
+
+        Button {
+          visible: root.hasKeyboard
+          width: parent.width
+          text: "Change Layout"
+          iconText: "󰌓"
+          bordered: true
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          onClicked: Qt.openUrlExternally("https://layout.new")
         }
 
         PanelSeparator {

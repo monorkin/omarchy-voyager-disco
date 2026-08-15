@@ -17,6 +17,8 @@ Panel {
 
   property string appliedMode: ""
   property int keyboardBrightness: 100
+  property int savedBrightness: 100
+  property bool monochromeIcon: false
   property bool _restored: false
   property bool _dirty: false
   property int subtitleIndex: 0
@@ -31,7 +33,9 @@ Panel {
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
 
   readonly property color ballColor: {
-    if (appliedMode === "color") {
+    if (monochromeIcon) {
+      return Qt.darker(barForeground, 1.55)
+    } else if (appliedMode === "color") {
       return currentColor
     } else if (appliedMode === "theme") {
       return Color.accent
@@ -125,6 +129,22 @@ Panel {
     persist()
   }
 
+  function toggleBrightness() {
+    if (keyboardBrightness > 0) {
+      savedBrightness = keyboardBrightness
+      applyBrightness(0)
+    } else if (savedBrightness > 0) {
+      applyBrightness(savedBrightness)
+    } else {
+      applyBrightness(100)
+    }
+  }
+
+  function toggleMonochromeIcon() {
+    monochromeIcon = !monochromeIcon
+    persist()
+  }
+
   function persist() {
     _dirty = true
     if (!persistTimer.running) {
@@ -140,7 +160,9 @@ Panel {
     var payload = JSON.stringify({
       lastColor: currentHex,
       lastMode: appliedMode,
-      lastBrightness: keyboardBrightness
+      lastBrightness: keyboardBrightness,
+      savedBrightness: savedBrightness,
+      monochromeIcon: monochromeIcon
     })
     Quickshell.execDetached(["bash", "-c",
       "mkdir -p \"$(dirname \"$0\")\" && printf '%s\\n' \"$1\" > \"$0\"",
@@ -162,6 +184,9 @@ Panel {
     appliedMode = String(state.lastMode || "")
     var b = parseInt(String(state.lastBrightness), 10)
     if (isFinite(b)) keyboardBrightness = Math.max(0, Math.min(100, b))
+    var saved = parseInt(String(state.savedBrightness), 10)
+    if (isFinite(saved)) savedBrightness = Math.max(0, Math.min(100, saved))
+    monochromeIcon = state.monochromeIcon === true
   }
 
   function setFromColor(c) {
@@ -280,8 +305,8 @@ Panel {
       }
     }
     onPressed: function(buttonCode) {
-      if (buttonCode === Qt.RightButton) root.matchTheme()
-      else if (buttonCode === Qt.MiddleButton) root.resetLighting()
+      if (buttonCode === Qt.RightButton) root.toggleBrightness()
+      else if (buttonCode === Qt.MiddleButton) root.toggleMonochromeIcon()
       else root.toggle()
     }
     onWheelMoved: function(delta) {

@@ -8,6 +8,7 @@ Item {
   property real iconSize: 16
   property color ballColor: "#888888"
   property color planeColor: "#ffffff"
+  property bool slashed: false
 
   width: iconSize
   height: iconSize
@@ -30,6 +31,12 @@ Item {
     return "#" + pad(c.r) + pad(c.g) + pad(c.b)
   }
 
+  function slashMarkup() {
+    if (!slashed) return ""
+    return '<line x1="36" y1="24" x2="240" y2="228" stroke="' + svgHex(planeColor)
+      + '" stroke-width="26" stroke-linecap="round"/>'
+  }
+
   Image {
     anchors.fill: parent
     fillMode: Image.PreserveAspectFit
@@ -40,6 +47,7 @@ Item {
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264.58335 264.58335">'
       + '<path fill="' + root.svgHex(root.ballColor) + '" d="' + root.ballPath + '"/>'
       + '<path fill="' + root.svgHex(root.planeColor) + '" d="' + root.planePath + '"/>'
+      + root.slashMarkup()
       + '</svg>')
   }
 }

@@ -301,6 +301,7 @@ Panel {
           iconSize: Style.space(13)
           ballColor: root.ballColor
           planeColor: root.barForeground
+          slashed: root.keyboardBrightness === 0
         }
       }
     }
@@ -362,6 +363,7 @@ Panel {
                 }
               }
               planeColor: root.foreground
+              slashed: root.keyboardBrightness === 0
             }
           }
         }
